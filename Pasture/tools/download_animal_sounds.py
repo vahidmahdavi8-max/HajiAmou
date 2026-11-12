@@ -16,41 +16,58 @@ def norm(s):return re.sub(r"[^a-z0-9]+"," ",(s or "").lower()).strip()
 def matches(a,item):
  hay=norm(item.get("title","")+" "+" ".join(t.get("name","") for t in item.get("tags",[])))
  return any(re.search(r"(^| )"+re.escape(norm(x))+r"( |$)",hay) for x in a.get("aliases",[]) if norm(x))
-def search(a):
- params={"q":a["name"]+" animal sound","license":",".join(sorted(ACCEPT)),"license_type":"modification","category":"sound_effect","extension":",".join(sorted(EXTS)),"page_size":20,"mature":"false","filter_dead":"true"}
- for attempt in range(3):
+def api_search(q,page):
+ params={"q":q,"license":",".join(sorted(ACCEPT)),"license_type":"modification","category":"sound_effect","extension":",".join(sorted(EXTS)),"page_size":20,"page":page,"mature":"false","filter_dead":"true"}
+ for attempt in range(2):
   try:
-   r=S.get(API,params=params,timeout=(8,18))
+   r=S.get(API,params=params,timeout=(8,15))
    if r.status_code==429 or r.status_code>=500:
-    delay=3*(attempt+1);print("Openverse temporary response",r.status_code,"wait",delay,flush=True);time.sleep(delay);continue
+    time.sleep(4*(attempt+1));continue
    if r.status_code>=400:
-    print("Openverse rejected search",r.status_code,r.text[:200],flush=True);return None
-   for item in r.json().get("results",[]):
-    if item.get("license") in ACCEPT and item.get("category")=="sound_effect" and (item.get("filetype") or "").lower() in EXTS and item.get("url") and matches(a,item):
-     return item
-   return None
+    print("Openverse rejected query",r.status_code,r.text[:150],flush=True);return []
+   return r.json().get("results",[])
   except Exception as e:
-   print("Search error",a["name"],e,flush=True);time.sleep(3*(attempt+1))
- return None
+   print("Openverse query error:",e,flush=True);time.sleep(3)
+ return []
+# Search in five batches, reducing API calls while keeping each species query explicit.
+results=[]
+for start in range(0,len(animals),10):
+ group=animals[start:start+10]
+ q="("+" | ".join(a["name"].lower() for a in group)+") sound"
+ print("Searching batch:",", ".join(a["name"] for a in group),flush=True)
+ for page in range(1,6):
+  batch=api_search(q,page)
+  if not batch:break
+  results.extend(batch)
+  time.sleep(3.1)
+# Keep only unique, correctly tagged results under a redistribution-friendly licence.
+selected={}
+for a in animals:
+ for item in results:
+  if item.get("license") not in ACCEPT or item.get("category")!="sound_effect":continue
+  if (item.get("filetype") or "").lower() not in EXTS or not item.get("url"):continue
+  if matches(a,item):
+   selected[a["id"]]=item;break
+print("Matched species:",len(selected),"/",len(animals),flush=True)
 for n,a in enumerate(animals,1):
- print(f"[{n}/{len(animals)}] {a['name']}",flush=True)
- found=search(a)
- if not found:print("  no match");time.sleep(3.1);continue
+ found=selected.get(a["id"])
+ if not found:continue
+ print(f"[{n}/{len(animals)}] Downloading {a['name']}",flush=True)
  target=OUT/(a["id"]+".mp3");tmp=OUT/(a["id"]+".source")
  try:
-  with S.get(found["url"],stream=True,timeout=(10,25)) as r:
+  with S.get(found["url"],stream=True,timeout=(10,20)) as r:
    r.raise_for_status()
    length=int(r.headers.get("Content-Length") or 0)
-   if length>20*1024*1024:raise ValueError("source file too large; skipped")
+   if length>12*1024*1024:raise ValueError("source too large")
    total=0
    with open(tmp,"wb") as f:
     for chunk in r.iter_content(131072):
      if not chunk:continue
      total+=len(chunk)
-     if total>20*1024*1024:raise ValueError("source file exceeded 20 MB; skipped")
+     if total>12*1024*1024:raise ValueError("source exceeded 12 MB")
      f.write(chunk)
   subprocess.run(["ffmpeg","-y","-v","error","-i",str(tmp),"-t","8","-ac","1","-ar","22050","-b:a","80k",str(target)],check=True,timeout=35)
-  if not target.exists() or target.stat().st_size<1000:raise ValueError("audio conversion produced an empty clip")
+  if not target.exists() or target.stat().st_size<1000:raise ValueError("empty converted audio")
   tmp.unlink(missing_ok=True)
   source=found.get("foreign_landing_url") or found.get("detail_url") or found["url"]
   author=found.get("creator") or "Unknown";lic=found.get("license","").upper()+" "+str(found.get("license_version",""))
@@ -58,8 +75,7 @@ for n,a in enumerate(animals,1):
   credits.append(f"{a['name']}: {author}; {lic}; source {source}; license {found.get('license_url','')}; trimmed and converted to mono MP3.")
   print("  OK",found.get("title"),lic,flush=True)
  except Exception as e:
-  print("  download/convert failed:",e,flush=True);tmp.unlink(missing_ok=True);target.unlink(missing_ok=True)
- time.sleep(3.1)
+  print("  download failed:",e,flush=True);tmp.unlink(missing_ok=True);target.unlink(missing_ok=True)
 (ROOT/"animals.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
 (ROOT/"SOUND_CREDITS.txt").write_text("\n".join(credits)+"\n",encoding="utf-8")
 added=len(manifest)-2;print("New animal recordings:",added)
