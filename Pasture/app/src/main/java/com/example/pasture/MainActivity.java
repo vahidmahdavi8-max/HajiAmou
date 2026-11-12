@@ -25,6 +25,7 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(false);
         s.setAllowFileAccess(true);
+        s.setAllowFileAccessFromFileURLs(true);
         s.setAllowContentAccess(false);
         s.setMediaPlaybackRequiresUserGesture(true);
         s.setCacheMode(WebSettings.LOAD_NO_CACHE);
