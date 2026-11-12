@@ -522,5 +522,157 @@
       "stag",
       "roe deer"
     ]
+  },
+  {
+    "id": "squirrel",
+    "name": "Squirrel",
+    "emoji": "🐿️",
+    "category": "Wild",
+    "call": "Chatter",
+    "aliases": [
+      "squirrel"
+    ]
+  },
+  {
+    "id": "monkey",
+    "name": "Monkey",
+    "emoji": "🐒",
+    "category": "Wild",
+    "call": "Chatter",
+    "aliases": [
+      "monkey"
+    ]
+  },
+  {
+    "id": "camel",
+    "name": "Camel",
+    "emoji": "🐫",
+    "category": "Wild",
+    "call": "Grunt",
+    "aliases": [
+      "camel"
+    ]
+  },
+  {
+    "id": "kangaroo",
+    "name": "Kangaroo",
+    "emoji": "🦘",
+    "category": "Wild",
+    "call": "Grunt",
+    "aliases": [
+      "kangaroo"
+    ]
+  },
+  {
+    "id": "zebra",
+    "name": "Zebra",
+    "emoji": "🦓",
+    "category": "Wild",
+    "call": "Bark",
+    "aliases": [
+      "zebra"
+    ]
+  },
+  {
+    "id": "giraffe",
+    "name": "Giraffe",
+    "emoji": "🦒",
+    "category": "Wild",
+    "call": "Hum",
+    "aliases": [
+      "giraffe"
+    ]
+  },
+  {
+    "id": "hippopotamus",
+    "name": "Hippopotamus",
+    "emoji": "🦛",
+    "category": "Wild",
+    "call": "Grunt",
+    "aliases": [
+      "hippopotamus",
+      "hippo"
+    ]
+  },
+  {
+    "id": "raccoon",
+    "name": "Raccoon",
+    "emoji": "🦝",
+    "category": "Wild",
+    "call": "Chitter",
+    "aliases": [
+      "raccoon"
+    ]
+  },
+  {
+    "id": "coyote",
+    "name": "Coyote",
+    "emoji": "🐺",
+    "category": "Wild",
+    "call": "Howl",
+    "aliases": [
+      "coyote"
+    ]
+  },
+  {
+    "id": "otter",
+    "name": "Otter",
+    "emoji": "🦦",
+    "category": "Wild",
+    "call": "Chirp",
+    "aliases": [
+      "otter"
+    ]
+  },
+  {
+    "id": "koala",
+    "name": "Koala",
+    "emoji": "🐨",
+    "category": "Wild",
+    "call": "Bellow",
+    "aliases": [
+      "koala"
+    ]
+  },
+  {
+    "id": "bison",
+    "name": "Bison",
+    "emoji": "🦬",
+    "category": "Wild",
+    "call": "Grunt",
+    "aliases": [
+      "bison",
+      "buffalo"
+    ]
+  },
+  {
+    "id": "hyena",
+    "name": "Hyena",
+    "emoji": "🐾",
+    "category": "Wild",
+    "call": "Whoop",
+    "aliases": [
+      "hyena"
+    ]
+  },
+  {
+    "id": "gorilla",
+    "name": "Gorilla",
+    "emoji": "🦍",
+    "category": "Wild",
+    "call": "Grunt",
+    "aliases": [
+      "gorilla"
+    ]
+  },
+  {
+    "id": "badger",
+    "name": "Badger",
+    "emoji": "🦡",
+    "category": "Wild",
+    "call": "Growl",
+    "aliases": [
+      "badger"
+    ]
   }
 ]
