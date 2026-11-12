@@ -19,18 +19,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Install Android SDK and audio tools
-        shell: bash
+      - name: Verify preinstalled Android SDK and audio tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg python3-pip
-          python3 -m pip install --break-system-packages requests
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export ANDROID_SDK_ROOT="$ANDROID_HOME"
-          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
-          test -x "$SDKMANAGER"
-          yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses >/dev/null || true
-          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          test -f "$ANDROID_HOME/platforms/android-35/android.jar"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt"
+          ffmpeg -version
+          python3 -c "import requests"
       - name: Download 50+ licensed animal recordings
         run: python3 Pasture/tools/download_animal_sounds.py
       - uses: gradle/actions/setup-gradle@v4
