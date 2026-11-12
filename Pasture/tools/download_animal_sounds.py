@@ -16,43 +16,31 @@ def norm(s):return re.sub(r"[^a-z0-9]+"," ",(s or "").lower()).strip()
 def matches(a,item):
  hay=norm(item.get("title","")+" "+" ".join(t.get("name","") for t in item.get("tags",[])))
  return any(re.search(r"(^| )"+re.escape(norm(x))+r"( |$)",hay) for x in a.get("aliases",[]) if norm(x))
-def api_search(q,page):
- params={"q":q,"license":",".join(sorted(ACCEPT)),"extension":",".join(sorted(EXTS)),"page_size":20,"page":page,"mature":"false","filter_dead":"true"}
- for attempt in range(3):
-  try:
-   r=S.get(API,params=params,timeout=(8,18))
-   if r.status_code==429 or r.status_code>=500:
-    time.sleep(3*(attempt+1));continue
-   if r.status_code>=400:
-    print("Openverse rejected query",r.status_code,r.text[:150],flush=True);return []
-   data=r.json()
-   return data.get("results",[])
-  except Exception as e:
-   print("Openverse query error:",e,flush=True);time.sleep(3*(attempt+1))
- return []
-results=[]
-for start in range(0,len(animals),10):
- group=animals[start:start+10]
- q="("+" | ".join(a["name"].lower() for a in group)+") sound"
- print("Searching batch:",", ".join(a["name"] for a in group),flush=True)
- for page in range(1,6):
-  batch=api_search(q,page)
-  if not batch:break
-  results.extend(batch);time.sleep(3.1)
-print("Openverse candidate results:",len(results),flush=True)
-selected={}
-for a in animals:
- for item in results:
-  if item.get("license") not in ACCEPT:continue
-  if (item.get("filetype") or "").lower() not in EXTS or not item.get("url"):continue
-  if item.get("category")=="music" or item.get("provider")=="jamendo":continue
-  if matches(a,item):
-   selected[a["id"]]=item;break
-print("Matched species:",len(selected),"/",len(animals),flush=True)
+def find_sound(a):
+ queries=[a["name"]+" sound",a["name"]+" animal"]
+ for q in queries:
+  params={"q":q,"license":",".join(sorted(ACCEPT)),"page_size":20,"mature":"false","filter_dead":"true"}
+  for page in (1,2):
+   params["page"]=page
+   try:
+    r=S.get(API,params=params,timeout=(8,18))
+    if r.status_code==429:
+     print("Openverse rate limit; pausing 15s",flush=True);time.sleep(15);continue
+    if r.status_code>=500:
+     print("Openverse server response",r.status_code,flush=True);time.sleep(5);continue
+    if r.status_code>=400:
+     print("Openverse query rejected",r.status_code,r.text[:100],flush=True);break
+    for item in r.json().get("results",[]):
+     if item.get("license") in ACCEPT and (item.get("filetype") or "").lower() in EXTS and item.get("url") and item.get("category")!="music" and item.get("provider")!="jamendo" and matches(a,item):
+      return item
+   except Exception as e:print("Search error",q,e,flush=True)
+   time.sleep(3.1)
+ return None
 for n,a in enumerate(animals,1):
- found=selected.get(a["id"])
- if not found:continue
- print(f"[{n}/{len(animals)}] Downloading {a['name']}",flush=True)
+ print(f"[{n}/{len(animals)}] Searching {a['name']}",flush=True)
+ found=find_sound(a)
+ if not found:
+  print("  no suitable recording found",flush=True);continue
  target=OUT/(a["id"]+".mp3");tmp=OUT/(a["id"]+".source")
  try:
   with S.get(found["url"],stream=True,timeout=(10,20)) as r:
