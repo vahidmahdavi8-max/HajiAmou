@@ -22,7 +22,7 @@ def find_candidates(a):
  try:
   r=requests.get(API,params=params,headers=HEADERS,timeout=(5,10))
   if r.status_code!=200:return a,[]
-  items=[x for x in r.json().get("results",[]) if x.get("license") in ACCEPT and (x.get("filetype") or "").lower() in EXTS and x.get("url") and x.get("category")!="music" and x.get("provider")!="jamendo" and matches(a,x)]
+  items=[x for x in r.json().get("results",[]) if x.get("license") in ACCEPT and (x.get("filetype") or "").lower() in EXTS and x.get("url") and x.get("category")!="music" and x.get("provider")!="jamendo" and "wikimedia" not in (x.get("provider") or "").lower() and matches(a,x)]
   # Prefer non-Wikimedia hosts; Commons can throttle bulk APK builds.
   items.sort(key=lambda x: 1 if "wikimedia" in (x.get("provider") or "").lower() else 0)
   return a,items[:8]
