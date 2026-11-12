@@ -1,0 +1,526 @@
+[
+  {
+    "id": "horse",
+    "name": "Horse",
+    "emoji": "🐎",
+    "category": "Farm",
+    "call": "Neigh",
+    "aliases": [
+      "horse",
+      "whinny"
+    ]
+  },
+  {
+    "id": "pig",
+    "name": "Pig",
+    "emoji": "🐖",
+    "category": "Farm",
+    "call": "Oink",
+    "aliases": [
+      "pig",
+      "swine"
+    ]
+  },
+  {
+    "id": "goat",
+    "name": "Goat",
+    "emoji": "🐐",
+    "category": "Farm",
+    "call": "Bleat",
+    "aliases": [
+      "goat"
+    ]
+  },
+  {
+    "id": "chicken",
+    "name": "Chicken",
+    "emoji": "🐔",
+    "category": "Farm",
+    "call": "Cluck",
+    "aliases": [
+      "chicken",
+      "hen"
+    ]
+  },
+  {
+    "id": "rooster",
+    "name": "Rooster",
+    "emoji": "🐓",
+    "category": "Farm",
+    "call": "Crow",
+    "aliases": [
+      "rooster"
+    ]
+  },
+  {
+    "id": "duck",
+    "name": "Duck",
+    "emoji": "🦆",
+    "category": "Farm",
+    "call": "Quack",
+    "aliases": [
+      "duck"
+    ]
+  },
+  {
+    "id": "goose",
+    "name": "Goose",
+    "emoji": "🪿",
+    "category": "Farm",
+    "call": "Honk",
+    "aliases": [
+      "goose"
+    ]
+  },
+  {
+    "id": "turkey",
+    "name": "Turkey",
+    "emoji": "🦃",
+    "category": "Farm",
+    "call": "Gobble",
+    "aliases": [
+      "turkey"
+    ]
+  },
+  {
+    "id": "donkey",
+    "name": "Donkey",
+    "emoji": "🫏",
+    "category": "Farm",
+    "call": "Bray",
+    "aliases": [
+      "donkey",
+      "ass"
+    ]
+  },
+  {
+    "id": "dog",
+    "name": "Dog",
+    "emoji": "🐕",
+    "category": "Pets",
+    "call": "Bark",
+    "aliases": [
+      "dog",
+      "puppy"
+    ]
+  },
+  {
+    "id": "cat",
+    "name": "Cat",
+    "emoji": "🐈",
+    "category": "Pets",
+    "call": "Meow",
+    "aliases": [
+      "cat",
+      "kitten"
+    ]
+  },
+  {
+    "id": "rabbit",
+    "name": "Rabbit",
+    "emoji": "🐇",
+    "category": "Pets",
+    "call": "Squeak",
+    "aliases": [
+      "rabbit",
+      "hare"
+    ]
+  },
+  {
+    "id": "guinea-pig",
+    "name": "Guinea pig",
+    "emoji": "🐹",
+    "category": "Pets",
+    "call": "Wheek",
+    "aliases": [
+      "guinea pig",
+      "cavy"
+    ]
+  },
+  {
+    "id": "hamster",
+    "name": "Hamster",
+    "emoji": "🐹",
+    "category": "Pets",
+    "call": "Squeak",
+    "aliases": [
+      "hamster"
+    ]
+  },
+  {
+    "id": "mouse",
+    "name": "Mouse",
+    "emoji": "🐁",
+    "category": "Pets",
+    "call": "Squeak",
+    "aliases": [
+      "mouse",
+      "mice"
+    ]
+  },
+  {
+    "id": "rat",
+    "name": "Rat",
+    "emoji": "🐀",
+    "category": "Pets",
+    "call": "Squeak",
+    "aliases": [
+      "rat"
+    ]
+  },
+  {
+    "id": "parrot",
+    "name": "Parrot",
+    "emoji": "🦜",
+    "category": "Birds",
+    "call": "Squawk",
+    "aliases": [
+      "parrot",
+      "parakeet",
+      "macaw"
+    ]
+  },
+  {
+    "id": "canary",
+    "name": "Canary",
+    "emoji": "🐤",
+    "category": "Birds",
+    "call": "Sing",
+    "aliases": [
+      "canary"
+    ]
+  },
+  {
+    "id": "pigeon",
+    "name": "Pigeon",
+    "emoji": "🕊️",
+    "category": "Birds",
+    "call": "Coo",
+    "aliases": [
+      "pigeon",
+      "dove"
+    ]
+  },
+  {
+    "id": "crow",
+    "name": "Crow",
+    "emoji": "🐦‍⬛",
+    "category": "Birds",
+    "call": "Caw",
+    "aliases": [
+      "crow"
+    ]
+  },
+  {
+    "id": "owl",
+    "name": "Owl",
+    "emoji": "🦉",
+    "category": "Birds",
+    "call": "Hoot",
+    "aliases": [
+      "owl"
+    ]
+  },
+  {
+    "id": "eagle",
+    "name": "Eagle",
+    "emoji": "🦅",
+    "category": "Birds",
+    "call": "Screech",
+    "aliases": [
+      "eagle"
+    ]
+  },
+  {
+    "id": "peacock",
+    "name": "Peacock",
+    "emoji": "🦚",
+    "category": "Birds",
+    "call": "Call",
+    "aliases": [
+      "peacock",
+      "peafowl"
+    ]
+  },
+  {
+    "id": "woodpecker",
+    "name": "Woodpecker",
+    "emoji": "🐦",
+    "category": "Birds",
+    "call": "Drum",
+    "aliases": [
+      "woodpecker"
+    ]
+  },
+  {
+    "id": "seagull",
+    "name": "Seagull",
+    "emoji": "🐦",
+    "category": "Birds",
+    "call": "Cry",
+    "aliases": [
+      "seagull",
+      "gull"
+    ]
+  },
+  {
+    "id": "penguin",
+    "name": "Penguin",
+    "emoji": "🐧",
+    "category": "Birds",
+    "call": "Bray",
+    "aliases": [
+      "penguin"
+    ]
+  },
+  {
+    "id": "flamingo",
+    "name": "Flamingo",
+    "emoji": "🦩",
+    "category": "Birds",
+    "call": "Call",
+    "aliases": [
+      "flamingo"
+    ]
+  },
+  {
+    "id": "frog",
+    "name": "Frog",
+    "emoji": "🐸",
+    "category": "Small life",
+    "call": "Croak",
+    "aliases": [
+      "frog"
+    ]
+  },
+  {
+    "id": "toad",
+    "name": "Toad",
+    "emoji": "🐸",
+    "category": "Small life",
+    "call": "Croak",
+    "aliases": [
+      "toad"
+    ]
+  },
+  {
+    "id": "cricket",
+    "name": "Cricket",
+    "emoji": "🦗",
+    "category": "Small life",
+    "call": "Chirp",
+    "aliases": [
+      "cricket"
+    ]
+  },
+  {
+    "id": "bee",
+    "name": "Bee",
+    "emoji": "🐝",
+    "category": "Small life",
+    "call": "Buzz",
+    "aliases": [
+      "bee",
+      "honeybee"
+    ]
+  },
+  {
+    "id": "mosquito",
+    "name": "Mosquito",
+    "emoji": "🦟",
+    "category": "Small life",
+    "call": "Buzz",
+    "aliases": [
+      "mosquito"
+    ]
+  },
+  {
+    "id": "cicada",
+    "name": "Cicada",
+    "emoji": "🪲",
+    "category": "Small life",
+    "call": "Buzz",
+    "aliases": [
+      "cicada"
+    ]
+  },
+  {
+    "id": "grasshopper",
+    "name": "Grasshopper",
+    "emoji": "🦗",
+    "category": "Small life",
+    "call": "Chirp",
+    "aliases": [
+      "grasshopper",
+      "locust"
+    ]
+  },
+  {
+    "id": "snake",
+    "name": "Snake",
+    "emoji": "🐍",
+    "category": "Reptiles",
+    "call": "Hiss",
+    "aliases": [
+      "snake",
+      "serpent"
+    ]
+  },
+  {
+    "id": "rattlesnake",
+    "name": "Rattlesnake",
+    "emoji": "🐍",
+    "category": "Reptiles",
+    "call": "Rattle",
+    "aliases": [
+      "rattlesnake"
+    ]
+  },
+  {
+    "id": "gecko",
+    "name": "Gecko",
+    "emoji": "🦎",
+    "category": "Reptiles",
+    "call": "Chirp",
+    "aliases": [
+      "gecko"
+    ]
+  },
+  {
+    "id": "crocodile",
+    "name": "Crocodile",
+    "emoji": "🐊",
+    "category": "Reptiles",
+    "call": "Growl",
+    "aliases": [
+      "crocodile",
+      "alligator"
+    ]
+  },
+  {
+    "id": "turtle",
+    "name": "Turtle",
+    "emoji": "🐢",
+    "category": "Reptiles",
+    "call": "Hiss",
+    "aliases": [
+      "turtle",
+      "tortoise"
+    ]
+  },
+  {
+    "id": "dolphin",
+    "name": "Dolphin",
+    "emoji": "🐬",
+    "category": "Ocean",
+    "call": "Click",
+    "aliases": [
+      "dolphin"
+    ]
+  },
+  {
+    "id": "whale",
+    "name": "Whale",
+    "emoji": "🐋",
+    "category": "Ocean",
+    "call": "Sing",
+    "aliases": [
+      "whale",
+      "humpback"
+    ]
+  },
+  {
+    "id": "seal",
+    "name": "Seal",
+    "emoji": "🦭",
+    "category": "Ocean",
+    "call": "Bark",
+    "aliases": [
+      "seal"
+    ]
+  },
+  {
+    "id": "sea-lion",
+    "name": "Sea lion",
+    "emoji": "🦭",
+    "category": "Ocean",
+    "call": "Bark",
+    "aliases": [
+      "sea lion",
+      "sea-lion"
+    ]
+  },
+  {
+    "id": "elephant",
+    "name": "Elephant",
+    "emoji": "🐘",
+    "category": "Wild",
+    "call": "Trumpet",
+    "aliases": [
+      "elephant"
+    ]
+  },
+  {
+    "id": "lion",
+    "name": "Lion",
+    "emoji": "🦁",
+    "category": "Wild",
+    "call": "Roar",
+    "aliases": [
+      "lion"
+    ]
+  },
+  {
+    "id": "tiger",
+    "name": "Tiger",
+    "emoji": "🐅",
+    "category": "Wild",
+    "call": "Growl",
+    "aliases": [
+      "tiger"
+    ]
+  },
+  {
+    "id": "wolf",
+    "name": "Wolf",
+    "emoji": "🐺",
+    "category": "Wild",
+    "call": "Howl",
+    "aliases": [
+      "wolf",
+      "wolves"
+    ]
+  },
+  {
+    "id": "fox",
+    "name": "Fox",
+    "emoji": "🦊",
+    "category": "Wild",
+    "call": "Yelp",
+    "aliases": [
+      "fox"
+    ]
+  },
+  {
+    "id": "bear",
+    "name": "Bear",
+    "emoji": "🐻",
+    "category": "Wild",
+    "call": "Growl",
+    "aliases": [
+      "bear"
+    ]
+  },
+  {
+    "id": "deer",
+    "name": "Deer",
+    "emoji": "🦌",
+    "category": "Wild",
+    "call": "Call",
+    "aliases": [
+      "deer",
+      "stag",
+      "roe deer"
+    ]
+  }
+]
