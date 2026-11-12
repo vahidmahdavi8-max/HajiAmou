@@ -1,91 +1,75 @@
 #!/usr/bin/env python3
-"""Bundle real animal recordings from the CC BY-SA Tierstimmen collection."""
+"""Download 50+ real animal calls with reusable CC licences from Openverse."""
 import json,re,subprocess,sys,time
 from pathlib import Path
+from urllib.parse import quote
 import requests
 
 ROOT=Path(__file__).resolve().parents[1]/"app/src/main/assets"
 OUT=ROOT/"sounds";OUT.mkdir(parents=True,exist_ok=True)
-API="https://commons.wikimedia.org/w/api.php"
-START="Category:Tierstimmen im Archiv des Museums für Naturkunde Berlin"
-S=requests.Session();S.headers.update({"User-Agent":"PastureAndroid/2.0 (offline animal soundboard)"})
-EXTS=(".ogg",".oga",".opus",".wav",".mp3",".flac",".aiff",".m4a")
-LIC=re.compile(r"(CC BY(?:-SA)? [234]\.0|CC0|Public domain)",re.I)
+API="https://api.openverse.org/v1/audio/"
+S=requests.Session();S.headers.update({"User-Agent":"PastureAndroid/2.0 (offline animal soundboard; openverse API client)"})
+ACCEPT={"by","by-sa","cc0","pdm"}
+EXTS={"mp3","ogg","wav","oga","flac","m4a"}
 animals=json.loads((ROOT/"animals.json").read_text(encoding="utf-8"))
-manifest=[{"id":"cow","name":"Cow","emoji":"🐄","category":"Farm","call":"Moo","audio":"meadow/cow.mp3","source":"Original Pasture project","license":"Original project credit"},{"id":"sheep","name":"Sheep","emoji":"🐑","category":"Farm","call":"Baa","audio":"meadow/sheep-a.mp3","source":"earthcalling","license":"Public domain"}]
+manifest=[
+ {"id":"cow","name":"Cow","emoji":"🐄","category":"Farm","call":"Moo","audio":"meadow/cow.mp3","source":"Original Pasture project","license":"Original project credit"},
+ {"id":"sheep","name":"Sheep","emoji":"🐑","category":"Farm","call":"Baa","audio":"meadow/sheep-a.mp3","source":"earthcalling","license":"Public domain"}
+]
 credits=["Cow: original Pasture recording; see original project credit.","Sheep: earthcalling; public-domain field recording."]
-def plain(x):return re.sub("<[^>]+>"," ",x or "").lower()
-def api(params):
+def norm(s):return re.sub(r"[^a-z0-9]+"," ",(s or "").lower()).strip()
+def matches(a,result):
+ hay=norm(result.get("title","")+" "+" ".join(t.get("name","") for t in result.get("tags",[])))
+ aliases=[norm(x) for x in a.get("aliases",[])]
+ for alias in aliases:
+  if not alias:continue
+  if re.search(r"(^| )"+re.escape(alias)+r"( |$)",hay):return True
+ return False
+def search(a):
+ q=a["name"]+" animal sound"
+ params={"q":q,"license":",".join(sorted(ACCEPT)),"license_type":"modification","category":"sound_effect","extension":",".join(sorted(EXTS)),"page_size":20,"mature":"false","filter_dead":"true"}
  for attempt in range(6):
   try:
-   r=S.get(API,params={"action":"query","format":"json",**params},timeout=60)
+   r=S.get(API,params=params,timeout=45)
    if r.status_code==429 or r.status_code>=500:
-    delay=min(45,5*(2**attempt));print("Commons throttle; wait",delay,flush=True);time.sleep(delay);continue
+    delay=min(60,5*(2**attempt));print("Openverse rate limit; wait",delay,"seconds",flush=True);time.sleep(delay);continue
    r.raise_for_status();data=r.json()
-   if data.get("warnings"):print("API warnings:",data["warnings"],flush=True)
-   return data
+   for item in data.get("results",[]):
+    if item.get("license") not in ACCEPT:continue
+    if item.get("category")!="sound_effect":continue
+    if not matches(a,item):continue
+    ext=(item.get("filetype") or "").lower()
+    if ext not in EXTS:continue
+    if item.get("url"):return item
+   return None
   except Exception as e:
-   delay=min(45,5*(2**attempt));print("API retry",attempt+1,e,flush=True);time.sleep(delay)
- return {}
-def collect_files(category,depth=0,seen=None):
- if seen is None:seen=set()
- if category in seen or depth>3:return []
- seen.add(category)
- data=api({"list":"categorymembers","cmtitle":category,"cmtype":"all","cmlimit":500})
- members=data.get("query",{}).get("categorymembers",[])
- print("Category",category,"members",len(members),flush=True)
- files=[m["pageid"] for m in members if m.get("ns")==6]
- subcats=[m["title"] for m in members if m.get("ns")==14]
- for sub in subcats:files.extend(collect_files(sub,depth+1,seen))
- return files
-ids=collect_files(START)
-if not ids:
- # Find the live Commons category name, since the project page's suggested title may differ.
- d=api({"list":"search","srsearch":"Tierstimmen","srnamespace":14,"srlimit":30})
- cats=[x["title"] for x in d.get("query",{}).get("search",[])]
- print("Commons category search:",cats,flush=True)
- for c in cats:ids.extend(collect_files(c,0,set()))
-ids=list(dict.fromkeys(ids))
-print("Unique archive files:",len(ids),flush=True)
-pages=[]
-for start in range(0,len(ids),50):
- d=api({"pageids":"|".join(map(str,ids[start:start+50])),"prop":"imageinfo","iiprop":"url|extmetadata"})
- pages.extend((d.get("query",{}).get("pages",{}) or {}).values())
-print("File metadata loaded:",len(pages),flush=True)
-def match(a):
- aliases=[x.lower() for x in a.get("aliases",[])]
- for p in pages:
-  ii=(p.get("imageinfo") or [{}])[0];url=ii.get("url","")
-  if not url.lower().endswith(EXTS):continue
-  meta=ii.get("extmetadata") or {};lic=plain(meta.get("LicenseShortName",{}).get("value",""))
-  if not LIC.search(lic):continue
-  hay=plain(p.get("title","")+" "+meta.get("ImageDescription",{}).get("value",""))
-  if any(x and x in hay for x in aliases):return p,ii,meta,lic
+   delay=min(60,5*(2**attempt));print("Openverse search error",a["name"],e,"retry",attempt+1,flush=True);time.sleep(delay)
  return None
 for n,a in enumerate(animals,1):
- print(f"[{n}/{len(animals)}] {a['name']}",flush=True);found=match(a)
- if not found:continue
- p,ii,meta,lic=found;title=p.get("title","");src=ii.get("descriptionurl","")
- author=re.sub("<[^>]+>","",meta.get("Artist",{}).get("value","")).strip() or "Unknown"
- licurl=re.sub("<[^>]+>","",meta.get("LicenseUrl",{}).get("value","")).strip()
+ print(f"[{n}/{len(animals)}] Searching {a['name']}",flush=True)
+ found=search(a)
+ if not found:
+  print("  no matching openly licensed recording");time.sleep(3.2);continue
+ url=found["url"];ext=(found.get("filetype") or "mp3").lower()
  tmp=OUT/(a["id"]+".source");target=OUT/(a["id"]+".mp3")
  try:
-  with S.get(ii["url"],stream=True,timeout=90) as r:
+  with S.get(url,stream=True,timeout=90) as r:
    r.raise_for_status()
    with open(tmp,"wb") as f:
     for chunk in r.iter_content(262144):
      if chunk:f.write(chunk)
   subprocess.run(["ffmpeg","-y","-v","error","-i",str(tmp),"-t","8","-ac","1","-ar","22050","-b:a","80k",str(target)],check=True)
   tmp.unlink(missing_ok=True)
-  manifest.append({**a,"audio":"sounds/"+target.name,"source":src,"author":author,"license":lic,"licenseUrl":licurl,"originalTitle":title})
-  credits.append(f"{a['name']}: {author}; {lic}; source {src}; license {licurl}; trimmed and converted to mono MP3.")
-  print("  OK",title,lic,flush=True)
+  source=found.get("foreign_landing_url") or found.get("detail_url") or url
+  author=found.get("creator") or "Unknown"
+  lic=found.get("license","").upper()+" "+str(found.get("license_version",""))
+  manifest.append({**a,"audio":"sounds/"+target.name,"source":source,"author":author,"license":lic,"licenseUrl":found.get("license_url",""),"originalTitle":found.get("title",""),"provider":found.get("provider","")})
+  credits.append(f"{a['name']}: {author}; {lic}; source {source}; license {found.get('license_url','')}; trimmed and converted to mono MP3.")
+  print("  OK:",found.get("title"),"by",author,lic,flush=True)
  except Exception as e:
-  print("  download failed",e);tmp.unlink(missing_ok=True);target.unlink(missing_ok=True)
-  time.sleep(1)
+  print("  download/convert failed:",e);tmp.unlink(missing_ok=True);target.unlink(missing_ok=True)
+ time.sleep(3.2)
 (ROOT/"animals.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
 (ROOT/"SOUND_CREDITS.txt").write_text("\n".join(credits)+"\n",encoding="utf-8")
 added=len(manifest)-2;print("New animal recordings:",added)
-if added<50:
- print("Available source files:",[p.get("title") for p in pages])
- sys.exit("Need at least 50 newly recorded species.")
+if added<50:sys.exit("Build stopped: fewer than 50 unique openly licensed animal recordings were found.")
