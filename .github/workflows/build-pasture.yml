@@ -4,12 +4,11 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'pasture-android-project.zip'
       - 'Pasture/**'
       - '.github/workflows/build-pasture.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -24,24 +23,8 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Extract project into Pasture if needed
-        shell: bash
-        run: |
-          if [ ! -f Pasture/settings.gradle ] && [ ! -f Pasture/settings.gradle.kts ]; then
-            mkdir -p /tmp/pasture-source
-            unzip -q pasture-android-project.zip -d /tmp/pasture-source
-            PROJECT_ROOT="$(find /tmp/pasture-source -type f \\( -name settings.gradle -o -name settings.gradle.kts \\) -print -quit | xargs dirname)"
-            test -n "$PROJECT_ROOT"
-            mkdir -p Pasture
-            cp -R "$PROJECT_ROOT"/. Pasture/
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add Pasture
-            if ! git diff --cached --quiet; then
-              git commit -m "Add Pasture Android project"
-              git push
-            fi
-          fi
+      - name: Verify project
+        run: test -f Pasture/settings.gradle
 
       - name: Install Android SDK packages
         shell: bash
