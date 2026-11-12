@@ -1,53 +1,46 @@
 name: Build Pasture APK
-
 on:
   workflow_dispatch:
   push:
+    branches: [pasture-expansion]
     paths:
       - 'Pasture/**'
       - '.github/workflows/build-pasture.yml'
-
 permissions:
   contents: read
-
 jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: pasture-expansion
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Verify project
-        run: test -f Pasture/settings.gradle
-
-      - name: Install Android SDK packages
+      - name: Install Android SDK and audio tools
         shell: bash
         run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg python3-pip
+          python3 -m pip install --break-system-packages requests
           export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
           export ANDROID_SDK_ROOT="$ANDROID_HOME"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           test -x "$SDKMANAGER"
           yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses >/dev/null || true
           "$SDKMANAGER" --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-
-      - name: Set up Gradle 8.9
-        uses: gradle/actions/setup-gradle@v4
+      - name: Download 50+ licensed animal recordings
+        run: python3 Pasture/tools/download_animal_sounds.py
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-
       - name: Build debug APK
         working-directory: Pasture
         run: gradle --no-daemon :app:assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: Pasture-debug-apk
+          name: Pasture-animal-sounds-apk
           path: Pasture/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
