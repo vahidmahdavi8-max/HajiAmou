@@ -17,61 +17,66 @@ def norm(s):return re.sub(r"[^a-z0-9]+"," ",(s or "").lower()).strip()
 def matches(a,item):
  hay=norm(item.get("title","")+" "+" ".join(t.get("name","") for t in item.get("tags",[])))
  return any(re.search(r"(^| )"+re.escape(norm(x))+r"( |$)",hay) for x in a.get("aliases",[]) if norm(x))
-def find_one(a):
+def find_candidates(a):
  params={"q":a["name"]+" sound","license":",".join(sorted(ACCEPT)),"page_size":20,"page":1}
  try:
   r=requests.get(API,params=params,headers=HEADERS,timeout=(5,10))
-  if r.status_code!=200:return a,None
-  for item in r.json().get("results",[]):
-   if item.get("license") in ACCEPT and (item.get("filetype") or "").lower() in EXTS and item.get("url") and item.get("category")!="music" and item.get("provider")!="jamendo" and matches(a,item):
-    return a,item
+  if r.status_code!=200:return a,[]
+  items=[x for x in r.json().get("results",[]) if x.get("license") in ACCEPT and (x.get("filetype") or "").lower() in EXTS and x.get("url") and x.get("category")!="music" and x.get("provider")!="jamendo" and matches(a,x)]
+  # Prefer non-Wikimedia hosts; Commons can throttle bulk APK builds.
+  items.sort(key=lambda x: 1 if "wikimedia" in (x.get("provider") or "").lower() else 0)
+  return a,items[:8]
  except Exception as e:print("Search failed",a["name"],e,flush=True)
- return a,None
+ return a,[]
 selected={}
 # Five requests per batch, then a 15-second pause: stays near Openverse's anonymous rate limit.
 for start in range(0,len(animals),5):
  batch=animals[start:start+5]
  print("Searching:",", ".join(a["name"] for a in batch),flush=True)
  with ThreadPoolExecutor(max_workers=5) as pool:
-  found=list(pool.map(find_one,batch))
- for a,item in found:
-  if item:selected[a["id"]]=item
+  found=list(pool.map(find_candidates,batch))
+ for a,items in found:
+  if items:selected[a["id"]]=items
   else:print("  no open recording:",a["name"],flush=True)
  if start+5<len(animals):time.sleep(15)
 print("Matched species:",len(selected),"/",len(animals),flush=True)
 def download_one(pair):
- a,item=pair
+ a,items=pair
  target=OUT/(a["id"]+".mp3");tmp=OUT/(a["id"]+".source")
- try:
-  for attempt in range(4):
-   with requests.get(item["url"],headers=HEADERS,stream=True,timeout=(8,20)) as r:
-    if r.status_code==429:
-     delay=min(20,int(r.headers.get("Retry-After") or (6*(attempt+1))))
-     print("Audio host rate limited",a["name"],"retry in",delay,"s",flush=True)
-     time.sleep(delay)
-     continue
-    r.raise_for_status()
-    total=0
-    with open(tmp,"wb") as f:
-     for chunk in r.iter_content(131072):
-      if not chunk:continue
-      remain=4*1024*1024-total
-      if remain<=0:break
-      if len(chunk)>remain:chunk=chunk[:remain]
-      f.write(chunk);total+=len(chunk)
-      if total>=4*1024*1024:break
-    break
-  if not tmp.exists() or tmp.stat().st_size<1000:raise ValueError("no audio data downloaded")
-  subprocess.run(["ffmpeg","-y","-v","error","-i",str(tmp),"-t","8","-ac","1","-ar","22050","-b:a","80k",str(target)],check=True,timeout=30)
-  if not target.exists() or target.stat().st_size<1000:raise ValueError("empty converted audio")
-  tmp.unlink(missing_ok=True)
-  source=item.get("foreign_landing_url") or item.get("detail_url") or item["url"]
-  author=item.get("creator") or "Unknown";lic=item.get("license","").upper()+" "+str(item.get("license_version",""))
-  credit=f"{a['name']}: {author}; {lic}; source {source}; license {item.get('license_url','')}; trimmed and converted to mono MP3."
-  entry={**a,"audio":"sounds/"+target.name,"source":source,"author":author,"license":lic,"licenseUrl":item.get("license_url",""),"originalTitle":item.get("title",""),"provider":item.get("provider","")}
-  return entry,credit
- except Exception as e:
-  print("Download failed",a["name"],e,flush=True);tmp.unlink(missing_ok=True);target.unlink(missing_ok=True);return None,None
+ for item in items:
+  try:
+   downloaded=False
+   for attempt in range(2):
+    with requests.get(item["url"],headers=HEADERS,stream=True,timeout=(8,15)) as r:
+     if r.status_code==429:
+      delay=min(10,int(r.headers.get("Retry-After") or 4))
+      print("Audio host rate limited",a["name"],"trying alternate source",flush=True)
+      time.sleep(delay);continue
+     r.raise_for_status()
+     total=0
+     with open(tmp,"wb") as f:
+      for chunk in r.iter_content(131072):
+       if not chunk:continue
+       remain=4*1024*1024-total
+       if remain<=0:break
+       if len(chunk)>remain:chunk=chunk[:remain]
+       f.write(chunk);total+=len(chunk)
+       if total>=4*1024*1024:break
+     downloaded=total>=1000
+     break
+   if not downloaded:tmp.unlink(missing_ok=True);continue
+   subprocess.run(["ffmpeg","-y","-v","error","-i",str(tmp),"-t","8","-ac","1","-ar","22050","-b:a","80k",str(target)],check=True,timeout=30)
+   if not target.exists() or target.stat().st_size<1000:raise ValueError("empty converted audio")
+   tmp.unlink(missing_ok=True)
+   source=item.get("foreign_landing_url") or item.get("detail_url") or item["url"]
+   author=item.get("creator") or "Unknown";lic=item.get("license","").upper()+" "+str(item.get("license_version",""))
+   credit=f"{a['name']}: {author}; {lic}; source {source}; license {item.get('license_url','')}; trimmed and converted to mono MP3."
+   entry={**a,"audio":"sounds/"+target.name,"source":source,"author":author,"license":lic,"licenseUrl":item.get("license_url",""),"originalTitle":item.get("title",""),"provider":item.get("provider","")}
+   return entry,credit
+  except Exception as e:
+   print("Candidate failed",a["name"],item.get("provider"),e,flush=True)
+   tmp.unlink(missing_ok=True);target.unlink(missing_ok=True)
+ return None,None
 pairs=[(a,selected[a["id"]]) for a in animals if a["id"] in selected]
 with ThreadPoolExecutor(max_workers=2) as pool:
  downloaded=list(pool.map(download_one,pairs))
