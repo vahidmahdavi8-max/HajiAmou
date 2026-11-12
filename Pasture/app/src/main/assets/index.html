@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1c2a18">
+<title>Pasture</title>
+<style>
+:root{--ink:#1c2a18;--cream:#f4efe4;--hay:#c4a15a;--soil:#5c4033}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--cream);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
+.field{position:absolute;inset:-3%;width:106%;height:106%;object-fit:cover;animation:drift 32s ease-in-out infinite alternate}
+.shade{position:absolute;inset:0;background:linear-gradient(180deg,#1c2a18b3 0%,#1c2a1826 45%,#1c2a18c9 100%)}
+main{position:relative;height:100%;height:100dvh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 22px) 20px calc(env(safe-area-inset-bottom) + 16px);gap:14px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-shrink:0}.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--hay);font-weight:600}h1{font-family:Georgia,serif;font-size:42px;line-height:1.05;font-weight:500;margin:5px 0 5px}header p{font-size:13px;line-height:1.45;color:#f4efe4e8;margin:0;max-width:265px}
+#mute{border:0;border-radius:100px;padding:10px 15px;background:#f4efe426;color:var(--cream);font-size:13px;font-weight:600;white-space:nowrap;margin-bottom:3px}
+.animals{display:flex;flex:1;min-height:0;flex-direction:column;gap:14px}.animal{position:relative;flex:1;min-height:0;width:100%;overflow:hidden;border:2px solid #f4efe426;border-radius:24px;padding:0;background:#24331f;text-align:left;color:var(--cream);box-shadow:0 8px 28px #0005;transition:flex .2s,border-color .2s,transform .15s}.animal.selected{border-color:var(--hay)}.animal:active{transform:scale(.985)}.animal img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%;transition:transform .5s}.animal.playing img{transform:scale(1.05)}.gradient{position:absolute;inset:0;background:linear-gradient(0deg,#172216d9 0%,#1722161a 55%,#17221630 100%)}.caption{position:absolute;left:0;right:0;bottom:0;padding:18px;display:flex;flex-direction:column;gap:3px}.name{font-family:Georgia,serif;font-size:34px;line-height:1.1}.sub{font-size:13px;color:#f4efe4e8}.ring{position:absolute;inset:11px;border:2px solid #f4efe4cc;border-radius:17px;animation:ring 1.1s ease-out infinite;pointer-events:none}
+footer{font-size:10px;line-height:1.5;color:#f4efe4bf;flex-shrink:0}
+@keyframes drift{to{transform:scale(1.06) translateY(-1.5%)}}@keyframes ring{from{opacity:.55;transform:scale(.92)}to{opacity:0;transform:scale(1.06)}}
+@media(min-height:800px){h1{font-size:48px}.name{font-size:38px}.caption{padding:22px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<img class="field" src="meadow/field.jpg" alt=""><div class="shade"></div>
+<main>
+<header><div><div class="eyebrow">The field</div><h1>Pasture</h1><p>Choose a cow or a sheep. Press them, and they answer in their own voice.</p></div><button id="mute" type="button">Sound on</button></header>
+<section class="animals">
+<button class="animal" id="cow" type="button" aria-label="Jersey cow. Press to hear her moo."><img src="meadow/cow.jpg" alt=""><span class="gradient"></span><span class="caption"><span class="name">Cow</span><span class="sub">A low moo from the pasture</span></span></button>
+<button class="animal" id="sheep" type="button" aria-label="Sheep. Press to hear a bleat."><img src="meadow/sheep.jpg" alt=""><span class="gradient"></span><span class="caption"><span class="name">Sheep</span><span class="sub">A short baa from the meadow</span></span></button>
+</section>
+<footer id="credit">Cow recorded at Mudchute City Farm by Secretlondon (CC BY-SA). Sheep from a public-domain field recording by earthcalling.</footer>
+</main>
+<script>
+const sounds={cow:['meadow/cow.mp3'],sheep:['meadow/sheep-a.mp3','meadow/sheep-b.mp3']};
+const cursors={cow:0,sheep:0};let muted=false,active=null,playing=null,finishTimer=null,currentAudio=null;
+const buttons={cow:document.getElementById('cow'),sheep:document.getElementById('sheep')};
+function stop(){if(finishTimer)clearTimeout(finishTimer);finishTimer=null;if(currentAudio){currentAudio.pause();currentAudio.currentTime=0;currentAudio=null}playing=null;render()}
+function render(){for(const key of Object.keys(buttons)){const b=buttons[key],on=playing===key,chosen=active===key;b.classList.toggle('selected',chosen);b.classList.toggle('playing',on);const cap=b.querySelector('.caption');cap.innerHTML=`<span class="name">${on?(key==='cow'?'Moo':'Baa'):(key==='cow'?'Cow':'Sheep')}</span><span class="sub">${on?'Listening…':chosen?'Press again for another call':key==='cow'?'A low moo from the pasture':'A short baa from the meadow'}</span>`;const old=b.querySelector('.ring');if(old)old.remove();if(on){const ring=document.createElement('span');ring.className='ring';b.appendChild(ring)}}}
+function play(key){active=key;render();if(muted)return;stop();active=key;const list=sounds[key],src=list[cursors[key]++%list.length];const audio=new Audio(src);currentAudio=audio;playing=key;render();audio.addEventListener('ended',()=>{if(currentAudio===audio){currentAudio=null;playing=null;render()}},{once:true});audio.addEventListener('error',()=>{if(currentAudio===audio){currentAudio=null;playing=null;document.getElementById('credit').textContent='That call did not come through. Press the animal once more.';render()}},{once:true});audio.play().catch(()=>{if(currentAudio===audio){currentAudio=null;playing=null;render()}})}
+buttons.cow.addEventListener('click',()=>play('cow'));buttons.sheep.addEventListener('click',()=>play('sheep'));
+document.getElementById('mute').addEventListener('click',()=>{muted=!muted;const b=document.getElementById('mute');b.textContent=muted?'Sound off':'Sound on';b.style.background=muted?'#5c4033':'#f4efe426';if(muted)stop()});
+</script>
+</body></html>
