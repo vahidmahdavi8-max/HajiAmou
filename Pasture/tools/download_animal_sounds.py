@@ -83,7 +83,7 @@ with ThreadPoolExecutor(max_workers=2) as pool:
 for entry,credit in downloaded:
  if entry:manifest.append(entry);credits.append(credit)
 (ROOT/"animals.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
-(ROOT/"animals-data.js").write_text("window.PASTURE_ANIMALS = "+json.dumps(manifest,ensure_ascii=False,separators=(",",":"))+";\\n",encoding="utf-8")
+(ROOT/"animals-data.js").write_text("window.PASTURE_ANIMALS = "+json.dumps(manifest,ensure_ascii=False,separators=(",",":"))+";\n",encoding="utf-8")
 (ROOT/"SOUND_CREDITS.txt").write_text("\n".join(credits)+"\n",encoding="utf-8")
 added=len(manifest)-2;print("New animal recordings:",added)
 if added<50:sys.exit("Build stopped: fewer than 50 unique openly licensed animal recordings were found.")
