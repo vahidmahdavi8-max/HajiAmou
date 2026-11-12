@@ -9,7 +9,7 @@
 <div class="search"><span>⌕</span><input id="query" type="search" placeholder="Find an animal…" autocomplete="off"></div><nav class="filters" id="filters"></nav>
 <div class="sectionhead"><h3 id="heading">All animals</h3><span id="count"></span></div><section class="grid" id="grid"></section>
 <div class="foot">All recordings are stored on your device. Sound credits and individual licenses are included in SOUND_CREDITS.txt. Pasture works fully offline.</div></div><div class="toast" id="toast"></div>
-<script>
+<script src="animals-data.js"></script><script>
 var animals=[],category="All",favoritesOnly=false,muted=false,current=null,audio=null;var grid=document.getElementById("grid"),filters=document.getElementById("filters"),toast=document.getElementById("toast");var categories=["All","Farm","Pets","Birds","Wild","Ocean","Reptiles","Small life"];
 function say(s){toast.textContent=s;toast.classList.add("show");setTimeout(function(){toast.classList.remove("show")},1600)}
 function isFav(id){try{return JSON.parse(localStorage.getItem("pasture-favorites")||"[]").includes(id)}catch(e){return false}}
@@ -19,5 +19,5 @@ function toggleFav(id){var f;try{f=JSON.parse(localStorage.getItem("pasture-favo
 function stop(){if(audio){audio.pause();audio.currentTime=0;audio=null}current=null;render()}
 function play(id){var a=animals.find(function(x){return x.id===id});if(!a||!a.audio){say("Recording not available");return}if(muted){say("Sound is muted");return}if(current===id){stop();return}if(audio){audio.pause();audio.currentTime=0}current=id;render();audio=new Audio(a.audio);audio.onended=function(){current=null;audio=null;render()};audio.onerror=function(){current=null;audio=null;render();say("Could not play this recording")};audio.play().catch(function(){current=null;audio=null;render();say("Tap again to play")})}
 document.getElementById("query").addEventListener("input",render);document.getElementById("mute").onclick=function(){muted=!muted;document.getElementById("mute").textContent=muted?"🔇":"🔊";if(muted)stop()};document.getElementById("random").onclick=function(){var p=animals.filter(function(a){return a.audio});if(p.length)play(p[Math.floor(Math.random()*p.length)].id)};document.getElementById("favorites").onclick=function(){favoritesOnly=!favoritesOnly;document.getElementById("favorites").textContent=favoritesOnly?"♥ Showing favorites":"♡ Favorites";render()};
-fetch("animals.json").then(function(r){return r.json()}).then(function(data){animals=data;document.getElementById("total").textContent=animals.length;document.getElementById("available").textContent=animals.filter(function(a){return a.audio}).length;drawFilters();render()}).catch(function(){grid.innerHTML='<div class="empty">Animal sounds could not be loaded.</div>'});
+animals=window.PASTURE_ANIMALS||[];document.getElementById("total").textContent=animals.length;document.getElementById("available").textContent=animals.filter(function(a){return a.audio}).length;drawFilters();render();
 </script></body></html>

@@ -14,3 +14,8 @@ This is a native Android WebView wrapper around a self-contained local version o
 Package: `com.example.pasture` · Min Android: 6.0 (API 23) · Target: API 35
 
 No `INTERNET` permission is declared. The web content, photos, and audio are all local assets.
+
+
+## Expanded animal library
+
+The `pasture-expansion` branch contains the expanded offline soundboard. Its build workflow retrieves real animal recordings from Openverse only when the individual recording is available under a reusable Creative Commons or public-domain license. Each downloaded file is trimmed, converted for Android playback, and recorded with its creator, source page, and license in `app/src/main/assets/SOUND_CREDITS.txt`. The workflow deliberately fails rather than shipping fewer than 50 additional recordings. The generated `animals-data.js` is loaded as a local script so the library works reliably in Android WebView's `file://` environment.
