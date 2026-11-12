@@ -46,7 +46,7 @@ def download_one(pair):
   for attempt in range(4):
    with requests.get(item["url"],headers=HEADERS,stream=True,timeout=(8,20)) as r:
     if r.status_code==429:
-     delay=int(r.headers.get("Retry-After") or (6*(attempt+1)))
+     delay=min(20,int(r.headers.get("Retry-After") or (6*(attempt+1))))
      print("Audio host rate limited",a["name"],"retry in",delay,"s",flush=True)
      time.sleep(delay)
      continue
