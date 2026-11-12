@@ -43,17 +43,26 @@ def download_one(pair):
  a,item=pair
  target=OUT/(a["id"]+".mp3");tmp=OUT/(a["id"]+".source")
  try:
-  with requests.get(item["url"],headers=HEADERS,stream=True,timeout=(8,15)) as r:
-   r.raise_for_status();length=int(r.headers.get("Content-Length") or 0)
-   if length>8*1024*1024:raise ValueError("source too large")
-   total=0
-   with open(tmp,"wb") as f:
-    for chunk in r.iter_content(131072):
-     if not chunk:continue
-     total+=len(chunk)
-     if total>8*1024*1024:raise ValueError("source exceeded 8 MB")
-     f.write(chunk)
-  subprocess.run(["ffmpeg","-y","-v","error","-i",str(tmp),"-t","8","-ac","1","-ar","22050","-b:a","80k",str(target)],check=True,timeout=25)
+  for attempt in range(4):
+   with requests.get(item["url"],headers=HEADERS,stream=True,timeout=(8,20)) as r:
+    if r.status_code==429:
+     delay=int(r.headers.get("Retry-After") or (6*(attempt+1)))
+     print("Audio host rate limited",a["name"],"retry in",delay,"s",flush=True)
+     time.sleep(delay)
+     continue
+    r.raise_for_status()
+    total=0
+    with open(tmp,"wb") as f:
+     for chunk in r.iter_content(131072):
+      if not chunk:continue
+      remain=4*1024*1024-total
+      if remain<=0:break
+      if len(chunk)>remain:chunk=chunk[:remain]
+      f.write(chunk);total+=len(chunk)
+      if total>=4*1024*1024:break
+    break
+  if not tmp.exists() or tmp.stat().st_size<1000:raise ValueError("no audio data downloaded")
+  subprocess.run(["ffmpeg","-y","-v","error","-i",str(tmp),"-t","8","-ac","1","-ar","22050","-b:a","80k",str(target)],check=True,timeout=30)
   if not target.exists() or target.stat().st_size<1000:raise ValueError("empty converted audio")
   tmp.unlink(missing_ok=True)
   source=item.get("foreign_landing_url") or item.get("detail_url") or item["url"]
@@ -64,7 +73,7 @@ def download_one(pair):
  except Exception as e:
   print("Download failed",a["name"],e,flush=True);tmp.unlink(missing_ok=True);target.unlink(missing_ok=True);return None,None
 pairs=[(a,selected[a["id"]]) for a in animals if a["id"] in selected]
-with ThreadPoolExecutor(max_workers=5) as pool:
+with ThreadPoolExecutor(max_workers=2) as pool:
  downloaded=list(pool.map(download_one,pairs))
 for entry,credit in downloaded:
  if entry:manifest.append(entry);credits.append(credit)
